@@ -1,0 +1,3 @@
+---
+prefix: netherloid
+release_pattern: build/libs/netherloid-*-release.jar

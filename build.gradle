@@ -1,0 +1,227 @@
+// swiped from BuildCraft
+
+buildscript {
+    repositories {
+        mavenCentral()
+
+        maven {
+            name = "forge"
+            url = "http://files.minecraftforge.net/maven"
+        }
+
+        maven {
+            name = "sonatype"
+            url = "https://oss.sonatype.org/content/repositories/snapshots/"
+        }
+    }
+    dependencies {
+        classpath "net.minecraftforge.gradle:ForgeGradle:1.2-SNAPSHOT"
+    }
+}
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+
+    maven {
+        name = "AppleCore"
+        url = "http://www.ryanliptak.com/maven/"
+    }
+
+    maven {
+        name "ChickenBones"
+        url "http://chickenbones.net/maven/"
+    }
+
+    maven {
+        name "Mobius"
+        url "http://mobiusstrip.eu/maven"
+    }
+
+    ivy {
+        name "BuildCraft"
+        artifactPattern "http://www.mod-buildcraft.com/releases/BuildCraft/[revision]/[module]-[revision]-[classifier].[ext]"
+    }
+}
+
+apply plugin: "forge"
+apply plugin: "checkstyle"
+
+checkstyle {
+    toolVersion = "6.11.2"
+    configFile = new File(rootDir, "checkstyle/checkstyle.xml")
+}
+
+// No more Java 1.6, we'll be using 1.7 for `switch (String)`
+sourceCompatibility = JavaVersion.VERSION_1_7
+targetCompatibility = JavaVersion.VERSION_1_7
+
+version = "${minecraft_version}-${netherloid_version}"
+group = "mod.netherloid"
+archivesBaseName = "netherloid"
+
+ext.netherloidApi = "src/java/growthcraft/api"
+
+// 3rd party APIs
+ext.growthcraftApi = "sub/Growthcraft/src/java/growthcraft/api"
+ext.growthcraftExclusionPattern = "**/src/java/growthcraft/api/**"
+
+ext.mfrApi = "sub/Growthcraft/api/powercrystals/minefactoryreloaded/api"
+ext.mfrApiExclusionPattern = "**/powercrystals/minefactoryreloaded/api/**"
+
+ext.thaumcraftApi = "sub/Growthcraft/api/thaumcraft/api"
+ext.thaumcraftApiExclusionPattern = "**/thaumcraft/api/**"
+
+ext.forestryApiRoot = "sub/Growthcraft/api/ForestryAPI"
+ext.forestryApi = "sub/Growthcraft/api/ForestryAPI/forestry/api"
+ext.forestryApiExclusionPattern = "**/forestry/api/**"
+
+minecraft {
+    version = minecraft_forge_version
+    runDir = "run"
+    replace "@VERSION@", project.version
+    replace "@GRC_MC_VERSION@", minecraft_version
+    replace "@GRC_VERSION@", netherloid_version
+}
+
+// configure  the source folders
+sourceSets {
+    // this builds everything into the main package
+    main {
+        java {
+            srcDir "src/java"
+        }
+        resources {
+            srcDir "src/resources"
+        }
+    }
+    api {
+        java {
+            srcDir project.netherloidApi
+            srcDir project.growthcraftApi
+            srcDir project.forestryApi
+            srcDir project.thaumcraftApi
+            srcDir project.mfrApi
+        }
+    }
+}
+
+processResources {
+    // replace stuff in mcmod.info, nothing else
+    from(sourceSets.main.resources.srcDirs) {
+        include "mcmod.info"
+        expand "version":project.version, "mcversion":project.minecraft.version
+    }
+}
+
+dependencies {
+    compile project(":sub/Growthcraft")
+    //compile "applecore:AppleCore:${minecraft_version}-${applecore_version}:api"
+    //compile "mcp.mobius.waila:Waila:${waila_version}_${minecraft_version}:dev"
+    //compile "codechicken:CodeChickenLib:${minecraft_version}-${code_chicken_lib_version}:dev"
+    //compile "codechicken:CodeChickenCore:${minecraft_version}-${code_chicken_core_version}:dev"
+    //compile "codechicken:NotEnoughItems:${minecraft_version}-${nei_version}:dev"
+    //compile "com.mod-buildcraft:buildcraft:${bc_version}:dev"
+    testCompile "junit:junit:4.11"
+}
+
+/*
+runClient {
+    if( project.hasProperty("mcUsername") && project.hasProperty("mcPassword") ) {
+        args "--username=${project.mcUsername}"
+        args "--password=${project.mcPassword}"
+    }
+
+}
+
+debugClient {
+    if( project.hasProperty("mcUsername") && project.hasProperty("mcPassword") ) {
+        args "--username=${project.mcUsername}"
+        args "--password=${project.mcPassword}"
+    }
+}*/
+
+// --------------------
+// extra jar section
+// -------------------
+
+tasks.withType(JavaCompile) {
+    options.compilerArgs += ["-Xlint:all", "-Xlint:deprecation", "-Xlint:-rawtypes", "-Xlint:-unchecked"]
+    options.deprecation = true
+    options.encoding = "utf8"
+}
+
+// add a source jar
+task sourceJar(type: Jar) {
+    from sourceSets.main.allSource
+    from(sourceSets.api.allSource) {
+        exclude project.growthcraftExclusionPattern
+        exclude project.forestryApiExclusionPattern
+        exclude project.thaumcraftApiExclusionPattern
+        exclude project.mfrApiExclusionPattern
+    }
+    classifier = "sources"
+}
+
+javadoc {
+    // add api classes to javadoc
+    source += sourceSets.api.allSource
+    // exclude 3rd party apis from the javadoc
+    exclude project.growthcraftExclusionPattern
+    exclude project.forestryApiExclusionPattern
+    exclude project.thaumcraftApiExclusionPattern
+    exclude project.mfrApiExclusionPattern
+
+    failOnError = false
+}
+
+// add a javadoc jar
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = "javadoc"
+    from "build/docs/javadoc"
+}
+
+// because the normal output has been made to be obfuscated
+task deobfJar(type: Jar) {
+    from sourceSets.main.output
+    from(sourceSets.api.output) {
+        exclude project.growthcraftExclusionPattern
+        exclude project.forestryApiExclusionPattern
+        exclude project.thaumcraftApiExclusionPattern
+        exclude project.mfrApiExclusionPattern
+    }
+    classifier = "dev"
+}
+
+task apiJar(type: Jar) {
+    from(sourceSets.api.output) {
+        exclude project.growthcraftExclusionPattern
+        exclude project.forestryApiExclusionPattern
+        exclude project.thaumcraftApiExclusionPattern
+        exclude project.mfrApiExclusionPattern
+    }
+    classifier = "api"
+}
+
+jar {
+    classifier = "complete"
+
+    // add api classes to main package
+    from(sourceSets.api.output) {
+        exclude project.growthcraftExclusionPattern
+        exclude project.forestryApiExclusionPattern
+        exclude project.thaumcraftApiExclusionPattern
+        exclude project.mfrApiExclusionPattern
+    }
+
+    // Only include the thaumcraft LICENSE
+    into("thaumcraft/api") {
+        from project.thaumcraftApi + "/LICENSE"
+    }
+    into("forestry/api") {
+        from project.forestryApiRoot + "/LICENSE.txt"
+    }
+}
+
+// make sure all of these happen when we run build
+build.dependsOn sourceJar, javadocJar, deobfJar, apiJar
