@@ -1,23 +1,18 @@
 language: java
 sudo: false
 jdk:
-  - openjdk7
-
+- openjdk7
 before_cache:
-  - rm -f $HOME/.gradle/caches/modules-2/modules-2.lock
+- rm -f $HOME/.gradle/caches/modules-2/modules-2.lock
 cache:
   directories:
-    - $HOME/.gradle/caches/
-    - $HOME/.gradle/wrapper/
-
+  - "$HOME/.gradle/caches/"
+  - "$HOME/.gradle/wrapper/"
 before_install:
-# fetch 3rd party apis and such
 - git submodule update --init
 - cd sub/Growthcraft && git submodule update --init
 - chmod +x ./gradlew
-
-install: ./gradlew setupCIWorkspace -S
-
+install: "./gradlew setupCIWorkspace -S"
 script: |
   ./gradlew build &&
   ls -la build/libs
@@ -25,13 +20,14 @@ script: |
 # Deploy the artifacts back to GitHub
 deploy:
   provider: releases
-  api_key: $GITHUB_OAUTH
+  api_key:
+    secure: rQ4AYSaJ7j1onc8vHRIvQ8Dd9meKCZQhfhytP76Bq6IZMCPE5zJVgqtz/cjPfwRj9ncjJ9Uj2zpeka5T2aLjdO4rzBX/76AR8yu/w+iX+oN7ipY0Ft4OXU+efT95bkwd0sDpKZBhq2UKj19G2D3bOBxwuiSJSNfaEvzXKsxvrYbGM+UTLQgdK5kPKd8Xsi6Ih9JkWc1HmJEj8kxNsiHQPBJ1+5uW5SNcA9bWyKgXokTdyk22sCIu3pq4UT9vMxJyLPH15jzw2S1d59mAMItTDfNmtCCgeZEOblsCiLFGTpm8k1fh0lt4LMX7n9ACerpQQFsUE7yMAQ4FAnul+rRl/ZHwviijnbo9UwaiD9SbzbJLuNFnzq5pVmDRoENxYPkz64GhNjdXPgouRG7HbgQczFGVeAVKyYsFAaHwOq8CNU9O255hIs2Fn8OdVLXpCpl5s1kmoFhO1NNMc+wXu3l3j9tIe9L0PmFbuI5pmppkU9vDzAom0J+MSCaWbTHHbEiXN7Gkl9YzVRhy/PP2hOQodvmfV4IQ+qkWrJETGmvo7I1pBU9q4Za8cZt4am0y7/Fn3kkgtUnNH5OLPYO79+qJyBzuLJzulpZgK15gxwZ31mLqUztzjLBkUQRUo59t2k/GU+na1+sIl/8hfRtE5BDr2FcC/jxp+Hiiv2wG1eCO5tk=
   file_glob: true
   file:
-    - "build/libs/netherloid-*-release.jar"
     - "build/libs/netherloid-*-api.jar"
     - "build/libs/netherloid-*-dev.jar"
     - "build/libs/netherloid-*-javadoc.jar"
+    - "build/libs/netherloid-*-release.jar"
     - "build/libs/netherloid-*-sources.jar"
   skip_cleanup: true
   on:
