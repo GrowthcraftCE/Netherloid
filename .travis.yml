@@ -10,7 +10,7 @@ cache:
   - "$HOME/.gradle/wrapper/"
 before_install:
 - git submodule update --init
-- cd sub/Growthcraft && git submodule update --init
+- cd sub/Growthcraft && git submodule update --init && cd ../../
 - chmod +x ./gradlew
 install: "./gradlew setupCIWorkspace -S"
 script: |
