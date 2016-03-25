@@ -204,7 +204,7 @@ task apiJar(type: Jar) {
 }
 
 jar {
-    classifier = "complete"
+    classifier = "release"
 
     // add api classes to main package
     from(sourceSets.api.output) {

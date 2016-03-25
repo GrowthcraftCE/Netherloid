@@ -21,3 +21,18 @@ install: ./gradlew setupCIWorkspace -S
 script: |
   ./gradlew build &&
   ls -la build/libs
+
+# Deploy the artifacts back to GitHub
+deploy:
+  provider: releases
+  api_key: $GITHUB_OAUTH
+  file_glob: true
+  file:
+    - "build/libs/netherloid-*-release.jar"
+    - "build/libs/netherloid-*-api.jar"
+    - "build/libs/netherloid-*-dev.jar"
+    - "build/libs/netherloid-*-javadoc.jar"
+    - "build/libs/netherloid-*-sources.jar"
+  skip_cleanup: true
+  on:
+    tags: true
